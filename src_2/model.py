@@ -32,6 +32,8 @@ class Sudoku:
         self._answer_state = CurrentEdit.VALUE
         self._is_check_collision: bool = is_check_collision
         self._is_hold_hand: bool = is_hold_hand
+        self._free_spaces: int = 81
+        self._is_in_play: bool = True
 
     def set_board(self, sudoku_board_location: str) -> None:
         with open(sudoku_board_location) as f:
@@ -42,6 +44,7 @@ class Sudoku:
                 if temp[i][j] != '.':
                     self._board[i][j].value = int(temp[i][j])
                     self._board[i][j].is_protected = True
+                    self._free_spaces -= 1
                 else:
                     continue
 
@@ -71,10 +74,13 @@ class Sudoku:
 
                 if cell.value == value:
                     cell.value = None
+                    self._free_spaces += 1
                 else:
                     cell.value = value
+                    self._free_spaces -= 1
             case CurrentEdit.DRAFTS:
                 if cell.value is not None:
+                    self._free_spaces += 1
                     cell.value = None
 
                 if cell.guesses is None:
@@ -84,6 +90,18 @@ class Sudoku:
                     cell.guesses.remove(value)
                 else:
                     cell.guesses.add(value)
+
+    @property
+    def answer_state(self) -> CurrentEdit:
+        return self._answer_state
+
+    @property
+    def free_spaces(self) -> int:
+        return self._free_spaces
+
+    @property
+    def is_in_play(self) -> int:
+        return self._is_in_play
 
 
 model = Sudoku()
