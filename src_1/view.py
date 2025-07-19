@@ -3,7 +3,7 @@ from typing import List, Set
 
 import os
 
-from .model import Instruction
+from .model import Instruction, SudokuModel
 
 
 class SudokuView:
@@ -49,6 +49,8 @@ class SudokuView:
                 return Instruction.ADD_ANSWER
             elif uinp in {"rm answer"}:
                 return Instruction.REMOVE_ANSWER
+            elif uinp in {"cancel instruction"}:
+                return Instruction.CANCEL_GUESS
             else:
                 continue
 
@@ -57,16 +59,29 @@ class SudokuView:
         while True:
             try:
                 (i, j, value) = (int(c) for c in input(
-                    "i j value. Note that (0,0) is top left ").split(' '))
+                    "i j value. Note that (0,0) is top left and x goes down. type 0 in third value to cancel instruction: ").split())
             except ValueError:
                 continue
 
-            if 1 <= i <= 9 and 1 <= j <= 9 and 1 <= value <= 9:
+            if 0 <= i <= 8 and 0 <= j <= 8 and 0 <= value <= 9:
                 break
 
         return (i, j, value)
 
-    def set_subgrid_number(self, x: int, y: int, value: int):
+    def instruction_handler(self, model: SudokuModel, instruction: Instruction, x: int, y: int, value: int) -> None:
+        match instruction:
+            case Instruction.ADD_ANSWER:
+                self.set_subgrid_number(x, y, value)
+            case Instruction.REMOVE_ANSWER:
+                self.set_subgrid_number(x, y, None)
+            case Instruction.ADD_GUESS:
+                self.set_subsubgird_number(x, y, value, model)
+            case Instruction.REMOVE_GUESS:
+                self.unset_subsubgrid_number(model, x, y, value)
+            case Instruction.CANCEL_GUESS:
+                return None
+
+    def set_subgrid_number(self, x: int, y: int, value: int | None):
         x_reference: int = (x * 3 + x) + x // 9
         y_reference: int = (y * 3 + y) + y // 9
         temp: List[str] = []
@@ -78,3 +93,26 @@ class SudokuView:
             for j in range(3):
                 self._print_board[x_reference + i][y_reference + j] \
                     = temp[i][j]
+
+    def set_subsubgird_number(self, x: int, y: int, value: int, model: SudokuModel):
+        x_reference: int = (x * 3 + x) + x // 9
+        y_reference: int = (y * 3 + y) + y // 9
+
+        if model.board[x][y].value is not None:
+            self.set_subgrid_number(x, y, None)
+
+        self._print_board[x_reference + (value - 1) //
+                          3][y_reference + (value - 1) % 3] = str(value)
+
+    def unset_subsubgrid_number(self, model: SudokuModel, x: int, y: int, value: int) -> None:
+        x_reference: int = (x * 3 + x) + x // 9
+        y_reference: int = (y * 3 + y) + y // 9
+
+        self._print_board[x_reference +
+                          (value - 1) // 3][y_reference + (value - 1) % 3] = '.'
+
+    def changing_protected_number(self) -> None:
+        print("Can't change protected value")
+
+    def clear_screen(self) -> None:
+        os.system("clear")

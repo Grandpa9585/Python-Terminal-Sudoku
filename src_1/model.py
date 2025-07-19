@@ -32,6 +32,7 @@ class Instruction(Enum):
     REMOVE_ANSWER = auto()
     ADD_GUESS = auto()
     REMOVE_GUESS = auto()
+    CANCEL_GUESS = auto()
 
 
 class SudokuSolver:
@@ -89,7 +90,7 @@ class SudokuTextToCell:
         script_dir: str = os.path.dirname(__file__)
         puzzle: str = 'puzzles/' + puzzle_name
         self._path: str = os.path.join(script_dir, puzzle)
-        self._board: Board = [
+        self.board: Board = [
             [Cell(None, [], False) for _ in range(9)] for _ in range(9)
         ]
         self._NUMBERS = '123456789'
@@ -102,10 +103,8 @@ class SudokuTextToCell:
         for i in range(9):
             for j in range(9):
                 if temp[i][j] in self._NUMBERS:
-                    self._board[i][j].value = int(temp[i][j])
-                    self._board[i][j].is_protected = True
-
-        print(self._board)
+                    self.board[i][j].value = int(temp[i][j])
+                    self.board[i][j].is_protected = True
 
 
 class SudokuModel:
@@ -138,6 +137,7 @@ class SudokuModel:
             case Instruction.ADD_GUESS:
                 if value in self._board[x][y].guesses:
                     return None
+                self._board[x][y].value = None
                 self._board[x][y].guesses.append(value)
             case Instruction.REMOVE_GUESS:
                 if value not in self._board[x][y].guesses:
@@ -145,6 +145,8 @@ class SudokuModel:
                 for i in range(len(self._board[x][y].guesses)):
                     if self._board[x][y].guesses[i] == value:
                         self._board[x][y].guesses.pop(i)
+            case Instruction.CANCEL_GUESS:
+                return None
 
         self._check_against_solved(x, y, value)
         self._check_regular_collision(x, y, value)
@@ -153,13 +155,13 @@ class SudokuModel:
         if not self._check_guess:
             return None
 
-        for i in range(1, 10):
+        for i in range(9):
             if self._board[i][y].value == value:
                 self._collisions.add((x, y))
                 self._answer_status = AnswerStatus.INVALID_ANSWER
                 return None
 
-        for i in range(1, 10):
+        for i in range(9):
             if self._board[x][i].value == value:
                 self._answer_status = AnswerStatus.INVALID_ANSWER
                 self._collisions.add((x, y))
