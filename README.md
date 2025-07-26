@@ -1,6 +1,6 @@
 A simple terminal sudoku game
 
-Run the game as python3 -m src_2
+Run the game as python3.12 -m src_2
 
 Currently supports drafting by typing "change"
 
