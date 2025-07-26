@@ -1,5 +1,7 @@
 A simple terminal sudoku game
 
+Run the game as python3 -m src_2
+
 Currently supports drafting by typing "change"
 
 To input a number, enter its cartesian coordinates as well as the number separataed by spaces. 1 1 X is the lowest left cell
