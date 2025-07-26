@@ -1,3 +1,5 @@
+# CONTROL SHIFT F
+
 from .model import Sudoku, EditingProtectedValueError
 from .view import SudokuView
 
